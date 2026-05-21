@@ -6,7 +6,12 @@ require("dotenv").config();
 const app = express();
 
 app.use(express.json());
-app.use(cors());
+app.use(
+  cors({
+    origin: "https://login-mern-eta.vercel.app",
+    methods: ["GET", "POST"],
+  })
+);
 
 mongoose.connect(process.env.MONGO_URI)
 .then(() => console.log("MongoDB Connected"))
