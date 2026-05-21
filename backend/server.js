@@ -20,8 +20,16 @@ mongoose.connect(process.env.MONGO_URI)
 
 // User Schema
 const userSchema = new mongoose.Schema({
-  email: String,
-  password: String,
+  email: {
+    type: String,
+    required: true,
+    unique: true
+  },
+
+  password: {
+    type: String,
+    required: true
+  },
 });
 
 const User = mongoose.model("User", userSchema);
@@ -36,34 +44,59 @@ app.get("/", (req, res) => {
 // Login API
 app.post("/login", async (req, res) => {
 
-  const { email, password } = req.body;
-
   try {
+
+    console.log("Login Data:", req.body);
+
+    const { email, password } = req.body;
 
     const user = await User.findOne({ email, password });
 
-    if (user) {
+    if(user){
+
       res.json({
         success: true,
-        message: "Login Successful",
+        message: "Login Successful"
       });
+
     } else {
+
       res.json({
         success: false,
-        message: "Invalid Email or Password",
+        message: "Invalid Email or Password"
       });
+
     }
 
-  } catch (err) {
-    res.status(500).json(err);
+  } catch(err){
+
+    console.log("Login Error:", err);
+
+    res.status(500).json({
+      success: false,
+      message: "Login Failed",
+      error: err.message
+    });
   }
 });
-
 
 // Register API
 app.post("/register", async (req, res) => {
 
   try {
+
+    console.log("Register Data:", req.body);
+
+    const existingUser = await User.findOne({
+      email: req.body.email
+    });
+
+    if(existingUser){
+      return res.json({
+        success: false,
+        message: "User already exists"
+      });
+    }
 
     const user = new User(req.body);
 
@@ -75,10 +108,19 @@ app.post("/register", async (req, res) => {
     });
 
   } catch (err) {
-    res.status(500).json(err);
+
+    console.log("Register Error:", err);
+
+    res.status(500).json({
+      success: false,
+      message: "Registration Failed",
+      error: err.message
+    });
   }
 });
 
-app.listen(5000, () => {
-  console.log("Server Running on Port 5000");
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+  console.log(`Server Running on Port ${PORT}`);
 });
